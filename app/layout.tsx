@@ -25,21 +25,24 @@ export default function RootLayout({
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <head>
         {/* Scripts remain the same */}
-        <Script id="dynamic-favicon" strategy="beforeInteractive">{`
-            function updateFavicon() {
-              const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-              const faviconHref = darkMode ? '/icons/skitbit-white.svg' : '/icons/favicon-dark.svg';
-              let link = document.querySelector("link[rel~='icon']");
-              if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.getElementsByTagName('head')[0].appendChild(link);
-              }
-              link.href = faviconHref;
-            }
-            updateFavicon();
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateFavicon);
-          `}</Script>
+       <Script id="dynamic-favicon" strategy="beforeInteractive">{`
+    function updateFavicon() {
+      const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      // If Dark Mode (True) -> Use White Logo (skillnova2.png)
+      // If Light Mode (False) -> Use Black Logo (skillnova1.png)
+      const faviconHref = darkMode ? '/icons/skillnova2.png' : '/icons/skillnova1.png';
+      
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = faviconHref;
+    }
+    updateFavicon();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateFavicon);
+`}</Script>
         <Script id="gtm-script" strategy="lazyOnload">{`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
           new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
           j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=

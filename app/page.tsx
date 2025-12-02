@@ -2,7 +2,7 @@ import { SiteHeader } from "@/components/site-header"
 import { Hero } from "@/components/hero"
 import { Features } from "@/components/features"
 import { Pricing } from "@/components/pricing"
-import { AppverseFooter } from "@/components/appverse-footer"
+import { Footer } from "@/components/footer" // <--- Changed this import
 import { FaqSection } from "@/components/faq-section"
 import { AboutSection } from "@/components/about-section"
 import Script from "next/script"
@@ -13,10 +13,9 @@ type Currency = "INR" | "USD"
 // Function to determine currency on the server
 function getCurrency(): Currency {
   const headersList = headers()
-  // Removed the Vercel-specific header check
   const countryHeader =
     headersList.get("x-country-code") ||
-    headersList.get("cf-ipcountry") || // Cloudflare header
+    headersList.get("cf-ipcountry") || 
     ""
 
   const country = countryHeader.toUpperCase()
@@ -25,7 +24,7 @@ function getCurrency(): Currency {
 }
 
 export default function Page() {
-  const currency = getCurrency() // Get currency on the server
+  const currency = getCurrency() 
 
   const pricingStructuredData = {
     "@context": "https://schema.org",
@@ -108,10 +107,9 @@ export default function Page() {
         <Pricing currency={currency} />
         <FaqSection />
         <AboutSection />
-        <AppverseFooter />
+        <Footer /> {/* <--- Updated Component */}
       </main>
 
-      {/* JSON-LD structured data */}
       <Script
         id="pricing-structured-data"
         type="application/ld+json"

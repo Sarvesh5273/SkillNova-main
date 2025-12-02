@@ -1,5 +1,4 @@
 import { Pricing } from "@/components/pricing";
-import { AppverseFooter } from "@/components/appverse-footer";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 
@@ -27,7 +26,7 @@ export default function PricingPage() {
         <div className="flex-grow">
           <Pricing currency={currency} />
         </div>
-        <AppverseFooter />
+    
       </main>
     </>
   );

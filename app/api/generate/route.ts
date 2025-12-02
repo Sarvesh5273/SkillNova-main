@@ -30,9 +30,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // UPDATED MODEL NAME HERE vvv
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // Format history for Gemini
     const history = messages.slice(0, -1).map((msg: Message) => ({
       role: msg.role === "assistant" ? "model" : "user",
       parts: [{ text: msg.content }],
@@ -57,7 +57,6 @@ export async function POST(req: Request) {
 
     const result = await chat.sendMessageStream(lastMessage.content);
 
-    // Create a stream response
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -79,11 +78,13 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("AI Error:", error);
-    // Return appropriate error codes based on the issue
     if (error.message?.includes("API key")) {
         return NextResponse.json({ error: "Invalid API Configuration" }, { status: 401 });
     } else if (error.status === 429) {
         return NextResponse.json({ error: "High traffic, please try again later." }, { status: 429 });
+    } else if (error.status === 404) {
+        // Handle model not found explicitly
+        return NextResponse.json({ error: "Model unavailable. Please contact admin to update AI model." }, { status: 503 });
     }
     return NextResponse.json({ error: error.message || "Failed to generate response" }, { status: 500 });
   }

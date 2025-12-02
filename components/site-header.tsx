@@ -35,7 +35,7 @@ export function SiteHeader() {
       }
       
       if (scrollPosition < headerOffset) {
-          currentSection = "/"
+        currentSection = "/"
       }
       setActiveLink(currentSection)
     }
@@ -73,10 +73,16 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 p-4">
       <div className="container mx-auto max-w-4xl">
         <div className="flex h-14 items-center justify-between px-6 liquid-glass-header rounded-full">
-          {/* Brand Logo */}
-          <Link href="/" onClick={(e) => handleNavClick(e, "/")} className="flex items-center gap-1.5">
-            <Image src="/icons/skitbit-white.svg" alt="Skitbit logo" width={20} height={20} className="h-5 w-5" />
-            <span className="font-semibold tracking-wide text-white">SkillNova</span>
+          {/* Brand Logo - Updated to use skillnova2.png */}
+          <Link href="/" onClick={(e) => handleNavClick(e, "/")} className="flex items-center gap-2">
+            <Image 
+              src="/icons/skillnova2.png" 
+              alt="SkillNova Logo" 
+              width={140} 
+              height={40} 
+              className="object-contain h-8 w-auto" 
+              priority 
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -123,9 +129,15 @@ export function SiteHeader() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="liquid-glass border-gray-800 p-0 w-64 flex flex-col">
-                <div className="flex items-center gap-1.5 px-4 py-4 border-b border-gray-800">
-                  <Image src="/icons/skitbit-white.svg" alt="Skitbit logo" width={24} height={24} className="h-6 w-6" />
-                  <span className="font-semibold tracking-wide text-white text-lg">SkillNova</span>
+                <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-800">
+                  {/* Mobile Menu Logo - Updated */}
+                  <Image 
+                    src="/icons/skillnova2.png" 
+                    alt="SkillNova Logo" 
+                    width={120} 
+                    height={35} 
+                    className="object-contain h-8 w-auto" 
+                  />
                 </div>
 
                 <nav className="flex flex-col gap-1 mt-2 text-gray-200">
