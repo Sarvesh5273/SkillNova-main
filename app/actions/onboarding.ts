@@ -3,14 +3,13 @@
 import { createClient } from "@/lib/supabase/server";
 
 export async function selectTrack(trackTitle: string) {
-  // FIX 1: Add 'await' here because createClient is async
   const supabase = await createClient();
   
   // 1. Authenticate
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // 2. Find the Track ID (e.g., "The Creator")
+  // 2. Find the Track ID
   const { data: track } = await supabase
     .from("tracks")
     .select("id")
@@ -27,8 +26,15 @@ export async function selectTrack(trackTitle: string) {
 
   if (!nodes || nodes.length === 0) return { success: false, error: "No nodes found" };
 
-  // 4. Create Progress Entries
-  // FIX 2: Explicitly type 'node' to avoid "implicitly has an 'any' type" error
+  // --- CRITICAL FIX START ---
+  // 4. DELETE PREVIOUS PROGRESS (Prevents mixing tracks)
+  await supabase
+    .from("user_progress")
+    .delete()
+    .eq("user_id", user.id);
+  // --- CRITICAL FIX END ---
+
+  // 5. Create New Progress Entries
   const entries = nodes.map((node: { id: string; order_index: number }) => ({
     user_id: user.id,
     node_id: node.id,

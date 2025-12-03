@@ -156,7 +156,10 @@ export const Plasma: React.FC<PlasmaProps> = ({
     // --- Mouse interaction (skip on iOS) ---
     const handleMouseMove = (e: MouseEvent) => {
       if (isIOS || !mouseInteractive) return
-      const rect = containerRef.current!.getBoundingClientRect()
+      // FIX: Add safety check for containerRef
+      if (!containerRef.current) return
+      
+      const rect = containerRef.current.getBoundingClientRect()
       mousePos.current.x = e.clientX - rect.left
       mousePos.current.y = e.clientY - rect.top
       const mouseUniform = program.uniforms.uMouse.value as Float32Array
@@ -169,7 +172,10 @@ export const Plasma: React.FC<PlasmaProps> = ({
 
     // --- Resize handling ---
     const setSize = () => {
-      const rect = containerRef.current!.getBoundingClientRect()
+      // FIX: Check if containerRef.current exists before accessing it
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect()
       const width = Math.max(1, Math.floor(rect.width))
       const height = Math.max(1, Math.floor(rect.height))
       renderer.setSize(width, height)

@@ -8,10 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TechCards } from "./tech-cards";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils"; // <--- FIXED IMPORT
-import { selectTrack } from "@/app/actions/onboarding"; // <--- ADDED SERVER ACTION
+import { cn } from "@/lib/utils";
+import { selectTrack } from "@/app/actions/onboarding";
 
 type ViewState = "VOID" | "CHAT" | "DISCOVERY" | "TRANSITION";
+
+// Helper function to interpret user intent
+const determineTrack = (input: string): string => {
+  const text = input.toLowerCase();
+  
+  if (text.includes("back") || text.includes("data") || text.includes("sql") || text.includes("node") || text.includes("api") || text.includes("server")) {
+    return "The Architect";
+  }
+  if (text.includes("ai") || text.includes("ml") || text.includes("robot") || text.includes("python") || text.includes("model") || text.includes("data science")) {
+    return "The Innovator";
+  }
+  // Default to Frontend if design/web/react or unknown
+  return "The Creator";
+};
 
 export function OriginStory() {
   const [viewState, setViewState] = useState<ViewState>("VOID");
@@ -34,23 +48,32 @@ export function OriginStory() {
     setInput("");
     setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
 
-    // Simple routing logic (In prod, send this to your API)
+    // Simple routing logic
     if (userMsg.toLowerCase().includes("know") || userMsg.toLowerCase().includes("trend") || userMsg.toLowerCase().includes("sure")) {
-        // Trigger Path B: Discovery
+        // Trigger Path B: Discovery (User is unsure)
         setTimeout(() => {
             setMessages((prev) => [...prev, { role: "ai", text: "Analyzing current tech vectors... Accessing global trend data." }]);
             setTimeout(() => setViewState("DISCOVERY"), 1500);
         }, 800);
     } else {
-        // Trigger Path A: Direct
-        setMessages((prev) => [...prev, { role: "ai", text: `Excellent choice. High demand detected. Initializing '${userMsg}' trajectory...` }]);
+        // Trigger Path A: Direct (User knows what they want)
+        // 1. Determine the Track dynamically
+        const selectedTrack = determineTrack(userMsg);
+
+        // 2. AI Response
+        setMessages((prev) => [...prev, { role: "ai", text: `Excellent choice. High demand detected. Initializing '${selectedTrack}' trajectory...` }]);
         setViewState("TRANSITION");
         
-        // Try to match text to a track, or default to "The Creator" if unknown
-        // In a real app, AI would classify "MERN" -> "The Architect" etc.
-        await selectTrack("The Creator"); 
+        // 3. Call Server Action with the CORRECT track
+        const result = await selectTrack(selectedTrack);
         
-        setTimeout(() => router.push("/dashboard"), 2500);
+        if (result.success) {
+            setTimeout(() => router.push("/dashboard"), 2500);
+        } else {
+            console.error("Failed to start track:", result.error);
+            // Fallback redirect anyway so user isn't stuck
+            setTimeout(() => router.push("/dashboard"), 2500);
+        }
     }
   };
 
@@ -66,7 +89,6 @@ export function OriginStory() {
         setTimeout(() => router.push("/dashboard"), 2500);
     } else {
         console.error("Failed to start track:", result.error);
-        // Fallback redirect anyway so user isn't stuck
         setTimeout(() => router.push("/dashboard"), 2500);
     }
   };

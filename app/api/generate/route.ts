@@ -8,12 +8,20 @@ interface Message {
   content: string;
 }
 
-const SYSTEM_INSTRUCTION = `You are SkillNova, an expert AI Career Mentor. 
-Your goal is to provide specific, actionable, and encouraging advice regarding career development, resume building, interview preparation, and skill acquisition.
-- Be professional yet accessible.
-- If asked about resumes, focus on ATS optimization and action verbs.
-- If asked about interviews, provide STAR method examples.
-- Do not provide medical, legal, or financial advice.`;
+// UPDATED: Context-Aware & Futuristic Persona
+const SYSTEM_INSTRUCTION = `You are SkillNova, an advanced AI Career Architect from the year 2050. 
+Your mission is to guide the user (The Traveler) through their career roadmap.
+
+Tone & Style:
+- Professional but futuristic and encouraging.
+- Use metaphors related to space, navigation, and leveling up.
+- Be concise and actionable.
+
+Directives:
+1. If the user asks about the current "Island" or "Node" (Topic), explain it simply.
+2. If asked about code, provide clean, modern syntax (ES6+, Python 3.10+).
+3. Do not give generic advice. Be specific to their chosen track (Creator/Architect/Innovator).
+4. Do not provide medical, legal, or financial advice.`;
 
 export async function POST(req: Request) {
   if (!process.env.GEMINI_API_KEY) {
@@ -30,7 +38,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // UPDATED MODEL NAME HERE vvv
+    // Using the flash model for speed/cost efficiency
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const history = messages.slice(0, -1).map((msg: Message) => ({
@@ -83,7 +91,6 @@ export async function POST(req: Request) {
     } else if (error.status === 429) {
         return NextResponse.json({ error: "High traffic, please try again later." }, { status: 429 });
     } else if (error.status === 404) {
-        // Handle model not found explicitly
         return NextResponse.json({ error: "Model unavailable. Please contact admin to update AI model." }, { status: 503 });
     }
     return NextResponse.json({ error: error.message || "Failed to generate response" }, { status: 500 });
