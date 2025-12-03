@@ -7,12 +7,12 @@ import { MessageSquare, X, ChevronRight, Sparkles, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { completeNode } from "@/app/actions/progress"; // This error will go away once you create the file in step 1
+import { completeNode } from "@/app/actions/progress"; 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// FIX: Use standard import and cast to 'any' to bypass strict TS checks for this external library
-const ReactPlayer = dynamic(() => import("react-player/lazy"), { ssr: false }) as any;
+// FIX: Use the main 'react-player' import. This is the most reliable way.
+const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;
 
 interface MissionControlProps {
   nodeId: string;
