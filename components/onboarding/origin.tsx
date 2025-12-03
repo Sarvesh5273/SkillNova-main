@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TechCards } from "./tech-cards";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils"; // <--- THIS WAS MISSING
+import { cn } from "@/lib/utils"; // <--- FIXED IMPORT
+import { selectTrack } from "@/app/actions/onboarding"; // <--- ADDED SERVER ACTION
 
 type ViewState = "VOID" | "CHAT" | "DISCOVERY" | "TRANSITION";
 
@@ -42,30 +43,33 @@ export function OriginStory() {
         }, 800);
     } else {
         // Trigger Path A: Direct
-        setTimeout(() => {
-            setMessages((prev) => [...prev, { role: "ai", text: `Excellent choice. High demand detected. Initializing '${userMsg}' trajectory...` }]);
-            setTimeout(() => setViewState("TRANSITION"), 2000);
-        }, 1000);
+        setMessages((prev) => [...prev, { role: "ai", text: `Excellent choice. High demand detected. Initializing '${userMsg}' trajectory...` }]);
+        setViewState("TRANSITION");
+        
+        // Try to match text to a track, or default to "The Creator" if unknown
+        // In a real app, AI would classify "MERN" -> "The Architect" etc.
+        await selectTrack("The Creator"); 
+        
+        setTimeout(() => router.push("/dashboard"), 2500);
     }
   };
 
   // 3. Handle Card Selection
-  const handleCardSelect = (path: string) => {
+  const handleCardSelect = async (path: string) => {
     setMessages((prev) => [...prev, { role: "user", text: `I choose ${path}` }]);
-    setViewState("CHAT"); // Briefly go back to chat to show confirmation
-    setTimeout(() => {
-        setMessages((prev) => [...prev, { role: "ai", text: `Understood. ${path} path selected. Generating roadmap...` }]);
-        setTimeout(() => setViewState("TRANSITION"), 1500);
-    }, 500);
-  };
-
-  // 4. Handle "Big Bang" Transition (End of Onboarding)
-  useEffect(() => {
-    if (viewState === "TRANSITION") {
-        // Wait for animation, then push to dashboard/map
-        setTimeout(() => router.push("/dashboard"), 2500); 
+    setViewState("TRANSITION"); // Start visual transition immediately
+    
+    // Call Server Action to save progress
+    const result = await selectTrack(path);
+    
+    if (result.success) {
+        setTimeout(() => router.push("/dashboard"), 2500);
+    } else {
+        console.error("Failed to start track:", result.error);
+        // Fallback redirect anyway so user isn't stuck
+        setTimeout(() => router.push("/dashboard"), 2500);
     }
-  }, [viewState, router]);
+  };
 
   return (
     <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full p-4 overflow-hidden">

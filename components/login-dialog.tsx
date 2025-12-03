@@ -68,7 +68,8 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
       if (plan && plan.name !== "Free") {
         router.push(`/payment?plan=${plan.name}&price=${encodeURIComponent(plan.price)}`)
       } else {
-        router.push("/chat")
+        // UPDATED: Redirect to onboarding first
+        router.push("/onboarding")
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
@@ -101,9 +102,13 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
     }
 
     try {
+      // NOTE: You might want to change this 'next' param to /onboarding as well if you want them to go there after verifying email.
       let redirectTo = `${window.location.origin}/auth/callback`
       if (plan && plan.name !== "Free") {
         redirectTo += `?next=/payment?plan=${plan.name.toLowerCase()}&price=${encodeURIComponent(plan.price)}`
+      } else {
+        // Optional: Direct sign-ups to onboarding too
+        redirectTo += `?next=/onboarding` 
       }
 
       const { error } = await supabase.auth.signUp({

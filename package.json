@@ -11,6 +11,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@hcaptcha/react-hcaptcha": "^1.12.1",
+    "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-avatar": "latest",
     "@radix-ui/react-dialog": "latest",
@@ -33,6 +34,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-markdown": "^10.1.0",
+    "react-player": "^3.4.0",
     "remark-gfm": "^4.0.1",
     "sonner": "latest",
     "tailwind-merge": "^2.5.5",

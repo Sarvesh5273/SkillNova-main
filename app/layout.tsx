@@ -3,7 +3,6 @@ import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import Script from "next/script"
-import Plasma from "@/components/plasma"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -68,7 +67,6 @@ export default function RootLayout({
           */}
           <TooltipProvider delayDuration={100} skipDelayDuration={0}>
             <div className="fixed inset-0 z-0 bg-black">
-              <Plasma color="#8b5cf6" speed={0.8} direction="forward" scale={1.5} opacity={0.4} mouseInteractive={true} />
             </div>
             <div className="relative z-10">{children}</div>
             <Toaster />

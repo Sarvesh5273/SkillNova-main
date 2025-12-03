@@ -7,6 +7,7 @@ import { FaqSection } from "@/components/faq-section"
 import { AboutSection } from "@/components/about-section"
 import Script from "next/script"
 import { headers } from "next/headers"
+import Plasma from "@/components/plasma"
 
 type Currency = "INR" | "USD"
 
@@ -100,6 +101,10 @@ export default function Page() {
 
   return (
     <>
+    <div className="fixed inset-0 z-0 bg-black">
+         <Plasma color="#8b5cf6" speed={0.8} direction="forward" scale={1.5} opacity={0.4} mouseInteractive={true} />
+      </div>
+      
       <main className="min-h-[100dvh] text-white">
         <SiteHeader />
         <Hero />

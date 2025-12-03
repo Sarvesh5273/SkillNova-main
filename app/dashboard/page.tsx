@@ -1,122 +1,50 @@
-"use client";
-
-import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getUserRoadmap } from "@/app/actions/dashboard";
+import Plasma from "@/components/plasma";
+import { MapView } from "@/components/dashboard/map-view";
+import { HUD } from "@/components/dashboard/hud";
 import { Button } from "@/components/ui/button";
-import { Settings, HelpCircle, LogOut, Crown } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { SettingsDialog } from "@/components/settings-dialog";
-import type { User } from "@supabase/supabase-js"; // Import correct type
+import { redirect } from "next/navigation";
 
-export default function UserDashboardPage() {
-  const [user, setUser] = useState<User | null>(null); // Use proper type
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
+export default async function DashboardPage() {
+  // 1. Server-Side Data Fetching
+  const nodes = await getUserRoadmap();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        // Redirect if not logged in
-        router.push("/");
-        return;
-      }
-
-      setUser(user);
-      setIsLoading(false);
-    };
-    getUser();
-  }, [router, supabase]); // Added dependencies
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-  };
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        {/* Using your custom lime color for the spinner */}
-        <div className="w-10 h-10 border-4 border-lime-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+  // 2. Security Check: If no roadmap exists, send back to Origin
+  if (!nodes || nodes.length === 0) {
+    redirect("/onboarding");
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-black text-white p-6">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">
-              {/* Safely access user metadata or fallback to email */}
-              Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}!
-            </h1>
-            <p className="text-gray-400">Manage your SkillNova experience</p>
-          </div>
+    <div className="relative min-h-screen bg-black overflow-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 z-0">
+        <Plasma color="#4f46e5" speed={0.4} opacity={0.3} scale={2} />
+      </div>
 
-          {/* Plan Card */}
-          <Card className="bg-[#1a1a1a] border-white/10">
-            <CardHeader className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Crown className="w-5 h-5 text-lime-400" />
-                <CardTitle className="text-white">SkillNova Free Plan</CardTitle>
-              </div>
-              <CardDescription className="text-gray-400">
-                Upgrade for unlimited mentorship and premium roadmaps
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link href="/pricing">
-                <Button className="w-full bg-lime-500 hover:bg-lime-600 text-black font-bold transition-colors">
-                    Upgrade to Pro
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+      {/* HUD (Fixed Top) */}
+      <HUD />
 
-          {/* Menu Options */}
-          <Card className="bg-[#1a1a1a] border-white/10">
-            <CardContent className="p-0">
-              <div className="divide-y divide-white/10">
-                <button className="w-full text-left" onClick={() => setIsSettingsOpen(true)}>
-                  <div className="flex items-center gap-3 p-4 hover:bg-white/5 transition-colors">
-                    <Settings className="w-5 h-5 text-gray-400" />
-                    <span className="text-white">Settings</span>
-                  </div>
-                </button>
-
-                <Link href="/faq" className="block">
-                  <div className="flex items-center gap-3 p-4 hover:bg-white/5 transition-colors">
-                    <HelpCircle className="w-5 h-5 text-gray-400" />
-                    <span className="text-white">Help & FAQ</span>
-                  </div>
-                </Link>
-
-                <button className="w-full text-left" onClick={handleLogout}>
-                  <div className="flex items-center gap-3 p-4 hover:bg-white/5 transition-colors">
-                    <LogOut className="w-5 h-5 text-red-400" />
-                    <span className="text-red-400">Logout</span>
-                  </div>
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="text-center mt-8">
-            <Link href="/chat">
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/5 bg-transparent">
-                Back to Chat
-              </Button>
-            </Link>
-          </div>
+      {/* Map (Scrollable) */}
+      <div className="relative z-10 w-full h-screen overflow-y-auto overflow-x-hidden">
+        <div className="max-w-4xl mx-auto pt-32 pb-24 px-4">
+            <h1 className="text-3xl font-bold text-center text-white mb-2">Current Trajectory</h1>
+            <p className="text-center text-gray-400 mb-12">Target: Senior Engineer</p>
+            
+            {/* Pass Real Data to Map */}
+            <MapView nodes={nodes} />
         </div>
       </div>
-      <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-    </>
+
+      {/* Floating Chat */}
+      <Link href="/chat">
+        <Button 
+            className="fixed bottom-8 right-8 z-50 rounded-full w-14 h-14 bg-lime-500 hover:bg-lime-400 text-black shadow-[0_0_20px_rgba(198,255,58,0.5)] transition-all hover:scale-110"
+        >
+            <MessageSquare className="w-6 h-6" />
+        </Button>
+      </Link>
+    </div>
   );
 }
