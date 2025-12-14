@@ -4,59 +4,106 @@ import { useState } from "react";
 import { CodeEditor } from "./code-editor";
 import { Terminal } from "./terminal";
 import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
+import { Play, Send } from "lucide-react";
+import { ArenaAnalysis } from "./arena-analysis"; // Import the new analysis
 
-// Default starter code for JS
-const STARTER_CODE = `// Challenge: Reverse a string
-function solution(str) {
-  // Write your code here
-  return str;
+// Props to receive real data from parent
+interface CodeChallengeProps {
+  challenge: {
+    topic: string;
+    starterCode: string;
+    testCaseInput: string;
+    testCaseOutput: string;
+  };
 }
 
-// Test Case (Do not modify)
-console.log(solution("SkillNova"));
-`;
-
-export function CodeChallenge() {
-  const [code, setCode] = useState(STARTER_CODE);
+export function CodeChallenge({ challenge }: CodeChallengeProps) {
+  const [code, setCode] = useState(challenge.starterCode);
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const runCode = async () => {
+  // 1. The "Test Runner" Logic
+  const runCode = async (isSubmission = false) => {
     setIsRunning(true);
     setError(null);
     setOutput(null);
 
     try {
-      // Calling Piston API (Public Execution Engine)
+      // We wrap the user's code in a try-catch block and append the test case
+      const wrappedCode = `
+        ${code}
+        
+        try {
+          const result = solution(${challenge.testCaseInput});
+          const expected = ${challenge.testCaseOutput};
+          
+          if (result === expected) {
+            console.log("✅ TEST PASSED");
+            console.log("Input:", ${challenge.testCaseInput});
+            console.log("Output:", result);
+          } else {
+            console.error("❌ TEST FAILED");
+            console.error("Expected:", expected);
+            console.error("Received:", result);
+          }
+        } catch (err) {
+          console.error("Runtime Error:", err.message);
+        }
+      `;
+
       const response = await fetch("https://emkc.org/api/v2/piston/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           language: "javascript",
           version: "18.15.0",
-          files: [{ content: code }],
+          files: [{ content: wrappedCode }],
         }),
       });
 
       const data = await response.json();
 
-      if (data.run && data.run.stderr) {
-        setError(data.run.stderr);
-      } else {
-        setOutput(data.run.stdout);
+      if (data.run) {
+        if (data.run.stderr) {
+            setError(data.run.stderr);
+            if (isSubmission) {
+                setIsSuccess(false);
+                setShowAnalysis(true);
+            }
+        } else {
+            setOutput(data.run.stdout);
+            
+            // Check if our "✅ TEST PASSED" log exists in the output
+            if (isSubmission) {
+                const passed = data.run.stdout.includes("✅ TEST PASSED");
+                setIsSuccess(passed);
+                setShowAnalysis(true);
+            }
+        }
       }
     } catch (err) {
-      setError("Failed to execute code. Please try again.");
+      setError("Execution System Offline. Please try again.");
     } finally {
       setIsRunning(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#121212] rounded-2xl overflow-hidden border border-white/10">
+    <div className="flex flex-col h-full bg-[#121212] rounded-2xl overflow-hidden border border-white/10 relative">
       
+      {/* Analysis Overlay */}
+      {showAnalysis && (
+        <ArenaAnalysis 
+            success={isSuccess} 
+            topic={challenge.topic} 
+            executionTime="42" // Mock time for MVP
+            onRetry={() => setShowAnalysis(false)} 
+        />
+      )}
+
       {/* Editor Area */}
       <div className="flex-1 min-h-0 relative">
         <CodeEditor 
@@ -65,15 +112,24 @@ export function CodeChallenge() {
             onChange={(val) => setCode(val || "")} 
         />
         
-        {/* Run Button (Floating) */}
-        <div className="absolute bottom-4 right-4 z-10">
+        {/* Action Buttons */}
+        <div className="absolute bottom-4 right-4 z-10 flex gap-2">
             <Button 
-                onClick={runCode} 
+                onClick={() => runCode(false)} 
                 disabled={isRunning}
-                className="bg-lime-500 hover:bg-lime-400 text-black font-bold shadow-lg hover:shadow-lime-500/20"
+                variant="secondary"
+                className="bg-[#1e1e1e] text-white hover:bg-[#2a2a2a] border border-white/10"
             >
                 <Play className="w-4 h-4 mr-2 fill-current" />
-                Run Code
+                Run
+            </Button>
+            <Button 
+                onClick={() => runCode(true)} 
+                disabled={isRunning}
+                className="bg-lime-500 hover:bg-lime-400 text-black font-bold shadow-lg shadow-lime-500/20"
+            >
+                <Send className="w-4 h-4 mr-2" />
+                Submit
             </Button>
         </div>
       </div>

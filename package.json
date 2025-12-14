@@ -31,6 +31,7 @@
     "next": "^14.2.32",
     "next-themes": "latest",
     "ogl": "latest",
+    "openai": "^6.9.1",
     "react": "^18",
     "react-dom": "^18",
     "react-markdown": "^10.1.0",
