@@ -35,6 +35,7 @@ void main() {
 }
 `
 
+// OPTIMIZATION: Reduced loop count from 40 to 20 for better performance
 const fragment = `#version 300 es
 precision highp float;
 uniform vec2 iResolution;
@@ -59,7 +60,8 @@ void mainImage(out vec4 o, vec2 C) {
   float i, d, z, T = iTime * uSpeed * uDirection;
   vec3 O, p, S;
 
-  for (vec2 r = iResolution.xy, Q; ++i <40.; O += o.w/d*o.xyz) {
+  // LOOP REDUCED TO 20 (was 40)
+  for (vec2 r = iResolution.xy, Q; ++i < 20.; O += o.w/d*o.xyz) {
     p = z*normalize(vec3(C-.5*r,r.y)); 
     p.z -= 4.; 
     S = p;
@@ -110,20 +112,17 @@ export const Plasma: React.FC<PlasmaProps> = ({
   useEffect(() => {
     if (!containerRef.current) return
 
-    // --- Device detection ---
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-    const isMobile = window.innerWidth < 768
-
     const useCustomColor = color ? 1.0 : 0.0
     const customColorRgb = color ? hexToRgb(color) : [1, 1, 1]
     const directionMultiplier = direction === "reverse" ? -1.0 : 1.0
 
-    // Lower DPR on mobile/iOS
+    // OPTIMIZATION: Force dpr to 0.5 or 0.75 max for performance
     const renderer = new Renderer({
       webgl: 2,
       alpha: true,
-      antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2) * (isIOS || isMobile ? 0.5 : 1),
+      antialias: false, 
+      dpr: isIOS ? 0.5 : 0.75, // Cap resolution at 75%
     })
     const gl = renderer.gl
     const canvas = gl.canvas as HTMLCanvasElement
@@ -153,10 +152,8 @@ export const Plasma: React.FC<PlasmaProps> = ({
 
     const mesh = new Mesh(gl, { geometry, program })
 
-    // --- Mouse interaction (skip on iOS) ---
     const handleMouseMove = (e: MouseEvent) => {
       if (isIOS || !mouseInteractive) return
-      // FIX: Add safety check for containerRef
       if (!containerRef.current) return
       
       const rect = containerRef.current.getBoundingClientRect()
@@ -170,15 +167,11 @@ export const Plasma: React.FC<PlasmaProps> = ({
       containerRef.current.addEventListener("mousemove", handleMouseMove)
     }
 
-    // --- Resize handling ---
     const setSize = () => {
-      // FIX: Check if containerRef.current exists before accessing it
       if (!containerRef.current) return;
-
       const rect = containerRef.current.getBoundingClientRect()
-      const width = Math.max(1, Math.floor(rect.width))
-      const height = Math.max(1, Math.floor(rect.height))
-      renderer.setSize(width, height)
+      // OPTIMIZATION: Render at smaller size if needed
+      renderer.setSize(rect.width, rect.height)
       const res = program.uniforms.iResolution.value as Float32Array
       res[0] = gl.drawingBufferWidth
       res[1] = gl.drawingBufferHeight
@@ -187,13 +180,13 @@ export const Plasma: React.FC<PlasmaProps> = ({
     ro.observe(containerRef.current)
     setSize()
 
-    // --- Animation loop ---
     let raf = 0
     let lastTime = 0
     const t0 = performance.now()
     const loop = (t: number) => {
       const delta = t - lastTime
-      if (!isIOS || delta > 33) { // 60fps desktop, ~30fps iOS
+      // Limit to 30fps on mobile, 60fps on desktop
+      if (delta > (isIOS ? 32 : 16)) { 
         const timeValue = (t - t0) * 0.001
         if (direction === "pingpong") {
           const cycle = Math.sin(timeValue * 0.5) * directionMultiplier

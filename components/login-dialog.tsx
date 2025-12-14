@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
-import { Loader2 } from "lucide-react" // Import the loader icon
+import { Loader2 } from "lucide-react" 
 
 interface LoginDialogProps {
   children: React.ReactNode
@@ -68,7 +68,6 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
       if (plan && plan.name !== "Free") {
         router.push(`/payment?plan=${plan.name}&price=${encodeURIComponent(plan.price)}`)
       } else {
-        // UPDATED: Redirect to onboarding first
         router.push("/onboarding")
       }
     } catch (error: unknown) {
@@ -102,12 +101,10 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
     }
 
     try {
-      // NOTE: You might want to change this 'next' param to /onboarding as well if you want them to go there after verifying email.
       let redirectTo = `${window.location.origin}/auth/callback`
       if (plan && plan.name !== "Free") {
         redirectTo += `?next=/payment?plan=${plan.name.toLowerCase()}&price=${encodeURIComponent(plan.price)}`
       } else {
-        // Optional: Direct sign-ups to onboarding too
         redirectTo += `?next=/onboarding` 
       }
 
@@ -172,11 +169,14 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
                 <Input id="password-login" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white/5 border-white/10 text-white" />
               </div>
 
-              <HCaptcha
-                sitekey={HCAPTCHA_SITE_KEY}
-                onVerify={handleVerificationSuccess}
-                theme="dark"
-              />
+              {/* FIX: Reserve space to prevent layout jump */}
+              <div className="min-h-[78px] flex justify-center">
+                <HCaptcha
+                  sitekey={HCAPTCHA_SITE_KEY}
+                  onVerify={handleVerificationSuccess}
+                  theme="dark"
+                />
+              </div>
 
               {error && <p className="text-sm text-red-400">{error}</p>}
               <Button type="submit" disabled={isLoading} className="w-full bg-lime-500 hover:bg-lime-600 text-black font-semibold">
@@ -211,11 +211,14 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
                 <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white/5 border-white/10 text-white" />
               </div>
 
-              <HCaptcha
-                sitekey={HCAPTCHA_SITE_KEY}
-                onVerify={handleVerificationSuccess}
-                theme="dark"
-              />
+               {/* FIX: Reserve space to prevent layout jump */}
+              <div className="min-h-[78px] flex justify-center">
+                <HCaptcha
+                  sitekey={HCAPTCHA_SITE_KEY}
+                  onVerify={handleVerificationSuccess}
+                  theme="dark"
+                />
+              </div>
 
               {error && <p className="text-sm text-red-400">{error}</p>}
               <Button type="submit" disabled={isLoading} className="w-full bg-lime-500 hover:bg-lime-600 text-black font-semibold">
