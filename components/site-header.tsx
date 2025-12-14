@@ -5,13 +5,14 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Image from "next/image"
-import { Menu, Briefcase, Tag, HelpCircle, Info } from "lucide-react"
+import { Menu, Briefcase, Tag, HelpCircle, Info, User } from "lucide-react" // <--- Added User icon
 import { LoginDialog } from "./login-dialog"
 import { cn } from "@/lib/utils"
 
-// Moved links array outside the component to prevent re-creation on every render
+// Added "Profile" to the links array
 const links = [
   { href: "/", label: "Home", icon: Briefcase },
+  { href: "/profile", label: "Profile", icon: User }, // <--- New Link
   { href: "#pricing", label: "Pricing", icon: Tag },
   { href: "#faq", label: "FAQ", icon: HelpCircle },
   { href: "#about", label: "About", icon: Info },
@@ -35,7 +36,10 @@ export function SiteHeader() {
       }
       
       if (scrollPosition < headerOffset) {
-        currentSection = "/"
+        // Only set to home if we are actually at the top and not on another page
+        if (window.location.pathname === "/") {
+            currentSection = "/"
+        }
       }
       setActiveLink(currentSection)
     }
@@ -46,7 +50,7 @@ export function SiteHeader() {
     return () => {
       window.removeEventListener("scroll", handleScroll)
     }
-  }, []) // Dependency array is empty because 'links' is now stable
+  }, [])
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href.startsWith("#")) {
@@ -54,18 +58,24 @@ export function SiteHeader() {
       const section = document.querySelector(href) as HTMLElement | null
       if (section) {
         window.scrollTo({
-          top: section.offsetTop - 80, // Offset for sticky header
+          top: section.offsetTop - 80,
           behavior: "smooth",
         })
         setActiveLink(href)
       }
     } else if (href === "/") {
-      e.preventDefault()
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      })
+      // Only scroll to top if we are already on the home page
+      if (window.location.pathname === "/") {
+        e.preventDefault()
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        })
+      }
       setActiveLink("/")
+    } else {
+        // Allow default navigation for /profile, just update state
+        setActiveLink(href)
     }
   }
 
@@ -73,7 +83,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 p-4">
       <div className="container mx-auto max-w-4xl">
         <div className="flex h-14 items-center justify-between px-6 liquid-glass-header rounded-full">
-          {/* Brand Logo - Updated to use skillnova2.png */}
+          {/* Brand Logo */}
           <Link href="/" onClick={(e) => handleNavClick(e, "/")} className="flex items-center gap-2">
             <Image 
               src="/icons/skillnova2.png" 
@@ -130,7 +140,6 @@ export function SiteHeader() {
               </SheetTrigger>
               <SheetContent side="right" className="liquid-glass border-gray-800 p-0 w-64 flex flex-col">
                 <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-800">
-                  {/* Mobile Menu Logo - Updated */}
                   <Image 
                     src="/icons/skillnova2.png" 
                     alt="SkillNova Logo" 
