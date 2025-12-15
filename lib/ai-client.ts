@@ -1,11 +1,17 @@
 import OpenAI from 'openai';
 
-const apiKey = process.env.OPENROUTER_API_KEY || "dummy-key";
+const apiKey = process.env.OPENROUTER_API_KEY;
+
+if (!apiKey) {
+  console.warn("Missing OPENROUTER_API_KEY environment variable");
+}
 
 export const openRouterClient = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: apiKey,
-  dangerouslyAllowBrowser: true, 
+  // Removed dangerouslyAllowBrowser: true 
+  // If you see an error, it means you are using this in a Client Component. 
+  // Move that logic to an API route (like /api/copilot) instead.
 });
 
 export const MODELS = {

@@ -28,7 +28,8 @@ export default async function DashboardPage() {
 
       {/* Map (Scrollable) */}
       <div className="relative z-10 w-full h-screen overflow-y-auto overflow-x-hidden">
-        <div className="max-w-4xl mx-auto pt-32 pb-24 px-4">
+        {/* FIX APPLIED BELOW: Changed 'pt-32' to 'pt-20' */}
+        <div className="max-w-4xl mx-auto pt-20 pb-24 px-4">
             <h1 className="text-3xl font-bold text-center text-white mb-2">Current Trajectory</h1>
             <p className="text-center text-gray-400 mb-12">Target: Senior Engineer</p>
             

@@ -9,32 +9,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  
   const router = useRouter();
   const supabase = createClient();
+  
+  const HCAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
+    if (!captchaToken) {
+      setError("Please complete the CAPTCHA challenge.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // 1. Authenticate with Supabase
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: { captchaToken },
       });
 
       if (signInError) {
         throw signInError;
       }
 
-      // 2. Redirect to Admin Dashboard
       router.push("/admin");
 
     } catch (err: any) {
@@ -47,7 +57,6 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex flex-col md:flex-row">
-      {/* Left side - only visible on desktop */}
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-lime-900 to-black p-12 flex-col justify-between border-r border-white/10">
         <div>
           <div className="flex items-center gap-3">
@@ -62,16 +71,13 @@ export default function AdminLogin() {
           </p>
         </div>
         <div className="mt-auto">
-           {/* Placeholder for admin visual */}
            <div className="w-full h-48 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-neutral-500">
               Admin Dashboard Preview
            </div>
         </div>
       </div>
 
-      {/* Right side - login form */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12">
-        {/* Mobile header - only visible on mobile */}
         <div className="flex md:hidden items-center gap-3 mb-8 w-full">
           <div className="w-10 h-10 bg-lime-400 rounded-lg flex items-center justify-center">
             <span className="text-black font-bold text-lg">SN</span>
@@ -94,9 +100,7 @@ export default function AdminLogin() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-neutral-200">
-                Email
-              </Label>
+              <Label htmlFor="email" className="text-neutral-200">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -110,9 +114,7 @@ export default function AdminLogin() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-neutral-200">
-                  Password
-                </Label>
+                <Label htmlFor="password" className="text-neutral-200">Password</Label>
               </div>
               <Input
                 id="password"
@@ -123,6 +125,15 @@ export default function AdminLogin() {
                 className="bg-[#1a1a1a] border-neutral-800 text-white focus:border-lime-500/50"
                 required
               />
+            </div>
+
+            {/* FIX: Left Align (justify-start) */}
+            <div className="w-full flex justify-start items-center min-h-[78px]">
+               <HCaptcha
+                 sitekey={HCAPTCHA_SITE_KEY}
+                 onVerify={(token) => setCaptchaToken(token)}
+                 theme="dark"
+               />
             </div>
 
             <Button type="submit" disabled={isLoading} className="w-full bg-lime-500 text-black hover:bg-lime-600 font-semibold">

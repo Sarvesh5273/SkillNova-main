@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
-import { Loader2 } from "lucide-react" 
+import { Loader2, Github } from "lucide-react"
 
 interface LoginDialogProps {
   children: React.ReactNode
@@ -46,7 +46,24 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
     setCaptchaToken(token)
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleGithubLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message);
+      setIsLoading(false);
+    }
+  };
+
+const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
@@ -68,7 +85,9 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
       if (plan && plan.name !== "Free") {
         router.push(`/payment?plan=${plan.name}&price=${encodeURIComponent(plan.price)}`)
       } else {
-        router.push("/onboarding")
+        // CHANGE: Redirect existing users to Home/Dashboard, not Onboarding
+        router.push("/") 
+        router.refresh() // Ensures the UI updates to show "Logged In" state
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
@@ -76,7 +95,6 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
       setIsLoading(false)
     }
   }
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -132,7 +150,7 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-black border-neutral-800 p-8">
+      <DialogContent className="sm:max-w-md bg-black border-neutral-800 p-8 overflow-y-auto max-h-[90vh]">
         <DialogHeader className="text-center space-y-2">
           <DialogTitle className="text-2xl font-bold text-white">
             Welcome to SkillNova
@@ -169,8 +187,8 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
                 <Input id="password-login" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white/5 border-white/10 text-white" />
               </div>
 
-              {/* FIX: Reserve space to prevent layout jump */}
-              <div className="min-h-[78px] flex justify-center">
+              {/* FIX: Left Align (justify-start) */}
+              <div className="w-full flex justify-start items-center min-h-[78px]">
                 <HCaptcha
                   sitekey={HCAPTCHA_SITE_KEY}
                   onVerify={handleVerificationSuccess}
@@ -211,8 +229,8 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
                 <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white/5 border-white/10 text-white" />
               </div>
 
-               {/* FIX: Reserve space to prevent layout jump */}
-              <div className="min-h-[78px] flex justify-center">
+              {/* FIX: Left Align (justify-start) */}
+              <div className="w-full flex justify-start items-center min-h-[78px]">
                 <HCaptcha
                   sitekey={HCAPTCHA_SITE_KEY}
                   onVerify={handleVerificationSuccess}
@@ -234,6 +252,34 @@ export function LoginDialog({ children, plan }: LoginDialogProps) {
             </form>
           </TabsContent>
         </Tabs>
+
+        <div className="flex flex-col gap-4 mt-6">
+           <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-white/10" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-black px-2 text-neutral-500">Or continue with</span>
+              </div>
+           </div>
+
+           <Button 
+             variant="outline" 
+             onClick={handleGithubLogin}
+             disabled={isLoading}
+             className="w-full bg-black text-white hover:bg-neutral-900 border border-neutral-800 h-11 transition-colors"
+           >
+             {isLoading ? (
+               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+             ) : (
+               <>
+                 <Github className="mr-2 h-4 w-4" />
+                 Continue with GitHub
+               </>
+             )}
+           </Button>
+        </div>
+
       </DialogContent>
     </Dialog>
   )

@@ -32,22 +32,28 @@ export function CodeChallenge({ challenge }: CodeChallengeProps) {
     setOutput(null);
 
     try {
-      // We wrap the user's code in a try-catch block and append the test case
+      // FIX: Safer Test Case Injection
+      // We explicitly treat inputs as JSON to handle strings/arrays/objects correctly
       const wrappedCode = `
         ${code}
         
         try {
-          const result = solution(${challenge.testCaseInput});
+          // Parse the test case input safely
+          // Note: We assume testCaseInput is a valid JSON string from the DB (e.g. '"SkillNova"' or '[1,2,3]')
+          const input = ${challenge.testCaseInput}; 
           const expected = ${challenge.testCaseOutput};
           
-          if (result === expected) {
+          const result = solution(input);
+          
+          // Basic equality check (for simple types)
+          if (JSON.stringify(result) === JSON.stringify(expected)) {
             console.log("✅ TEST PASSED");
-            console.log("Input:", ${challenge.testCaseInput});
-            console.log("Output:", result);
+            console.log("Input:", JSON.stringify(input));
+            console.log("Output:", JSON.stringify(result));
           } else {
             console.error("❌ TEST FAILED");
-            console.error("Expected:", expected);
-            console.error("Received:", result);
+            console.error("Expected:", JSON.stringify(expected));
+            console.error("Received:", JSON.stringify(result));
           }
         } catch (err) {
           console.error("Runtime Error:", err.message);
