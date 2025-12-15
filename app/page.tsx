@@ -1,23 +1,22 @@
 import { createClient } from "@/lib/supabase/server"; 
-import { redirect } from "next/navigation";
+// import { redirect } from "next/navigation"; // Removed redirect to let users see the landing page
 import { SiteHeader } from "@/components/site-header";
 import { Footer } from "@/components/footer";
 import { LoginDialog } from "@/components/login-dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LayoutDashboard } from "lucide-react";
 import { TypingEffect } from "@/components/typing-effect";
+import Link from "next/link"; // Import Link for navigation
 
 export default async function LandingPage() {
-  // 1. Auth Check
   const supabase = await createClient(); 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 2. If User is Logged In -> Go to Dashboard
-  if (user) {
-    redirect("/dashboard");
-  }
+  // NOTE: Auto-redirect removed so logged-in users can see the Hero page too.
+  // if (user) {
+  //   redirect("/dashboard");
+  // }
 
-  // 3. Public Hero Page
   return (
     <>
       <div className="fixed inset-0 z-0 bg-black">
@@ -28,7 +27,6 @@ export default async function LandingPage() {
       <main className="relative min-h-[100dvh] text-white selection:bg-lime-500/30">
         <SiteHeader />
 
-        {/* FIX APPLIED: Added pt-32 (mobile) and md:pt-40 (desktop) to prevent Navbar overlap */}
         <section className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-4 pt-32 md:pt-40">
           
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -55,11 +53,31 @@ export default async function LandingPage() {
           </p>
 
           <div className="flex flex-col md:flex-row gap-4 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
-            <LoginDialog>
-              <Button className="h-14 px-8 rounded-full bg-lime-500 hover:bg-lime-400 text-black text-lg font-bold shadow-[0_0_40px_rgba(132,204,22,0.4)] hover:shadow-[0_0_60px_rgba(132,204,22,0.6)] transition-all">
-                Start Mission <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </LoginDialog>
+            
+            {/* SMART BUTTON LOGIC */}
+            {user ? (
+              // 1. If User is Logged In -> Go to Dashboard
+              <Link href="/dashboard">
+                <Button className="h-14 px-8 rounded-full bg-lime-500 hover:bg-lime-400 text-black text-lg font-bold shadow-[0_0_40px_rgba(132,204,22,0.4)] hover:shadow-[0_0_60px_rgba(132,204,22,0.6)] transition-all">
+                  Resume Mission <LayoutDashboard className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            ) : (
+              // 2. If Public -> Open Login Dialog
+              <LoginDialog>
+                <Button className="h-14 px-8 rounded-full bg-lime-500 hover:bg-lime-400 text-black text-lg font-bold shadow-[0_0_40px_rgba(132,204,22,0.4)] hover:shadow-[0_0_60px_rgba(132,204,22,0.6)] transition-all">
+                  Start Mission <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </LoginDialog>
+            )}
+
+            {/* Secondary Button */}
+            {!user && (
+               <Button variant="outline" className="h-14 px-8 rounded-full border-white/10 hover:bg-white/5 text-lg text-white backdrop-blur-sm">
+                 View Flight Manual
+               </Button>
+            )}
+            
           </div>
         </section>
 
